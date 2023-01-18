@@ -25,6 +25,7 @@ def update_repo(
     output_hardening_path: str | Path | None = None,
     output_dockerfile_path: str | Path | None = None,
     dockerfile_template_path: str | Path = None,
+    virtual_package_spec_path: str | Path = None,
     cleanup: bool = False,
 ):
     """High level function to update an Iron Bank repository with a new environment.
@@ -51,6 +52,8 @@ def update_repo(
             overwrite the version in the repo
         output_dockerfile_path: output path for the new `Dockerfile`. Use `None` to
             overwrite the version in the repo
+        dockerfile_template_path: path to the Dockerfile template
+        virtual_packges_spec_path: path to a yaml describing the conda virtual packages.
     Returns:
         None
     """
@@ -89,7 +92,9 @@ def update_repo(
     # create local channel using conda-vendor
     logger.info(f"Creating local conda channel")
     local_channel_path = create_local_conda_channel(
-        env_path=local_env_path, root_channel_dir=repo_dir
+        env_path=local_env_path,
+        root_channel_dir=repo_dir,
+        virtual_package_spec=virtual_package_spec_path
     )
 
     # copy repodata.json back to the repo
@@ -104,7 +109,9 @@ def update_repo(
 
     # create ib_manifest using conda-vendor
     logger.info(f"Creating ib_manifest.yaml")
-    ib_manifest_path = create_ib_manifest(local_env_path)
+    ib_manifest_path = create_ib_manifest(
+            local_env_path,
+            virtual_package_spec=virtual_package_spec_path)
 
     # update hardening_manifest fom ib_manifest
     logger.info(f"Updating hardening manifest. Writing to {output_hardening_path}")

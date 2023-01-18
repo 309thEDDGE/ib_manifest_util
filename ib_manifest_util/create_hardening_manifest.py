@@ -16,6 +16,7 @@ HARDENING_MANIFEST_TPL = "hardening_manifest.tpl"
 def create_local_conda_channel(
     env_path: str | Path = "local_channel_env.yaml",
     root_channel_dir: str | Path = Path("."),
+    virtual_package_spec: str | Path = None
 ):
     """Create a local conda channel with Conda-Vendor.
 
@@ -33,6 +34,9 @@ def create_local_conda_channel(
         root_channel_dir:
             The root directory where the channel will be created (not
             including the channel directory itself)
+        virtual_package_spec:
+            Path to a yaml describing virtual packages to include in
+            the solution
     """
     # ensure that all the temp files/folders are consistently created in the same place
     os.chdir(root_channel_dir)
@@ -67,12 +71,16 @@ def create_local_conda_channel(
 
     # run conda-vendor to create the local conda channel
     # this may take a while, it performs the solves and downloads all packages
-    run_subprocess(f"conda-vendor vendor --file {tempfile} -p linux-64")
+    if not virtual_package_spec:
+        run_subprocess(f"conda-vendor vendor --file {tempfile} -p linux-64")
+    else:
+        run_subprocess(f"conda-vendor vendor --file {tempfile} -p linux-64 --virtual-package-spec {virtual_package_spec}")
 
     return output_path
 
 
-def create_ib_manifest(file: str | Path):
+def create_ib_manifest(file: str | Path,
+                       virtual_package_spec: str | Path = None):
     """Run conda-vendor to create ib_manifest.yaml.
 
     Takes in a `local_channel_env.yaml` and feeds it to
@@ -105,7 +113,10 @@ def create_ib_manifest(file: str | Path):
         yaml.dump(env, f)
 
     # run conda-vendor to generate `ib_manifest.yaml`
-    run_subprocess(f"conda-vendor ironbank-gen --file {tempfile} -p linux-64")
+    if not virtual_package_spec:
+        run_subprocess(f"conda-vendor ironbank-gen --file {tempfile} -p linux-64")
+    else:
+        run_subprocess(f"conda-vendor ironbank-gen --file {tempfile} -p linux-64 --virtual-package-spec {virtual_package_spec}")
     # remove temporary file
     tempfile.unlink()
 
