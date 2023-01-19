@@ -84,6 +84,7 @@ def download_packages(
             with requests.get(url, allow_redirects=True) as r:
                 if r.status_code > 400:
                     logger.error(f"ERROR! occurred downloading '{url}'")
+                    logger.error(f"server returned status: {r.status_code}")
                     error_count += 1
                 else:
                     with open(download_path / fname, "wb") as f:

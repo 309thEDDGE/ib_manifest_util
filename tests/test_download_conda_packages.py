@@ -58,7 +58,8 @@ def test_download_package_incorrect_url_list():
     expected_file_name = "dummy_url_for_testing.tar.gz"
 
     # Try to write the file
-    download_packages(urls=url_l, download_path=PACKAGE_DIR)
+    with pytest.raises(SystemExit):
+        download_packages(urls=url_l, download_path=PACKAGE_DIR)
 
     # Check that the package file is missing
     expected_file = Path(PACKAGE_DIR, expected_file_name)
@@ -77,7 +78,7 @@ def test_download_package_from_manifest():
 
     # Get list of file names for checking
     manifest = load_yaml(file_path=manifest_file_path)
-    file_names = [x["url"].split("/")[-1].lstrip("_") for x in manifest["resources"]]
+    file_names = [x["filename"] for x in manifest["resources"]]
 
     # Check that files were downloaded and then delete them (clean up)
     for fn in file_names:
@@ -130,5 +131,5 @@ def test_download_package_no_urls_no_manifest():
             expected_file_path = Path(PACKAGE_DIR, fn)
             assert_exist_then_delete(file_path=expected_file_path)
     else:
-        with pytest.raises(expected_exception=FileNotFoundError):
+        with pytest.raises(expected_exception=SystemExit):
             download_packages()
