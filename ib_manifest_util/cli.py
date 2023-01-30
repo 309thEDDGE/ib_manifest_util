@@ -42,6 +42,10 @@ def main() -> None:
     "--output_dockerfile_path",
     help="(Optional) Path to location in which the Dockerfile will be placed",
 )
+@click.option(
+    "--virtual_package_spec_path",
+    help="(Optional) Path to yaml with virtual packages specified for the solve"
+)
 def update_repo_cli(
     repo_dir: str | Path,
     dockerfile_version: str,
@@ -49,6 +53,7 @@ def update_repo_cli(
     startup_scripts_path: str | Path | None = None,
     output_hardening_path: str | Path | None = None,
     output_dockerfile_path: str | Path | None = None,
+    virtual_package_spec_path: str | Path | None = None,
 ):
     update_repo(
         repo_dir,
@@ -57,6 +62,7 @@ def update_repo_cli(
         startup_scripts_path,
         output_hardening_path,
         output_dockerfile_path,
+        virtual_package_spec_path,
     )
 
 

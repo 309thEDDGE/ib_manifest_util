@@ -1,15 +1,14 @@
 import logging
-from pathlib import Path
-
-import click
+import sys
 import requests
+
+from pathlib import Path
 
 from ib_manifest_util import DEFAULT_MANIFEST_FILENAME, PACKAGE_DIR
 from ib_manifest_util.util import load_yaml
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
 
 def download_packages(
     manifest_path: str | Path = None,
@@ -27,7 +26,6 @@ def download_packages(
             Optional list of package urls to download.  Supersedes manifest_path.
         download_path: str | Path
             Optional path to download package. Default: current working directory
-
     """
 
     if isinstance(manifest_path, str):
@@ -36,45 +34,67 @@ def download_packages(
     if isinstance(download_path, str):
         download_path = Path(download_path)
 
-    def _get_urls_from_manifest(path):
+    if not download_path.exists():
+        print(f"{download_path} does not exist!")
+        sys.exit(1)
+    if not download_path.is_dir():
+        print(f"{download_path} is not a directory!")
+        sys.exit(1)
+
+    manifest = None
+    manifest_source = None
+    if urls:
+        manifest = {"resources": []}
+        manifest_source = "command line"
+        for url in urls:
+            manifest["resources"].append(
+                {
+                    "url": url,
+                    "filename": url.split("/")[-1].lstrip("_"),
+                    "validation": {"type": None},
+                }
+            )
+
+    if not manifest:
+        if not manifest_path:
+            manifest_path = Path.cwd() / DEFAULT_MANIFEST_FILENAME
+
+        manifest_source = str(manifest_path)
         try:
-            manifest = load_yaml(path)
-            return [x["url"] for x in manifest["resources"]]
-        except FileNotFoundError as e:
-            logger.error(f" No manifest file found at specified path: {path.resolve()}")
-            raise e
+            manifest = load_yaml(manifest_path)
+        except Exception as e:
+            print(f"error loading manifest: {manifest_path.name}")
+            print(str(e))
+            sys.exit(1)
 
-    if manifest_path and urls:
-        logger.warning(
-            " Only one parameter, `urls` or `manifest_path`, can be used in download_packages, but both were passed.  Only `urls` will be used."
-        )
+    if not manifest:
+        print(f"no manifest or urls provided")
+        sys.exit(1)
 
-    elif urls:
-        pass
 
-    elif manifest_path:
-        urls = _get_urls_from_manifest(manifest_path)
+    logger.info(f"Downloading from manifest:[{manifest_source}]")
+    logger.info(f"Downloading to {download_path.resolve()}")
+    tot = len(manifest["resources"])
+    error_count = 0
+    for i, entry in enumerate(manifest["resources"]):
+        fname = entry["filename"]
+        url = entry["url"]
+        print(f"Downloading {i+1:3d} of {tot}: {fname}")
+        try:
+            with requests.get(url, allow_redirects=True) as r:
+                if r.status_code > 400:
+                    logger.error(f"ERROR! occurred downloading '{url}'")
+                    logger.error(f"server returned status: {r.status_code}")
+                    error_count += 1
+                else:
+                    with open(download_path / fname, "wb") as f:
+                        f.write(r.content)
+        except Exception as e:
+            logger.error(f"ERROR! {str(e)}")
+            error_count += 1
 
-    elif not manifest_path and not urls:
-        manifest_path = Path.cwd() / DEFAULT_MANIFEST_FILENAME
-        logger.info(
-            f" No `urls` or `manifest_path` specified. An attempt will be made using the default manifest file: {manifest_path}"
-        )
-        urls = _get_urls_from_manifest(manifest_path)
-
-    logger.info(f" Downloading packages to: {download_path.resolve()}")
-    for i, url in enumerate(urls):
-        fname = url.split("/")[-1].lstrip("_")
-        print(f"Downloading {i + 1} of {len(urls)}: {fname}")
-        with requests.get(url, allow_redirects=True) as r:
-            if r.status_code == 404:
-                logger.warning(
-                    f" URL '{url}'\n was not found.  Package was not downloaded."
-                )
-            else:
-                with open(download_path / fname, "wb") as f:
-                    f.write(r.content)
-
+    if error_count:
+        sys.exit(1)
 
 if __name__ == "__main__":
     download_packages()
