@@ -46,8 +46,8 @@ def create_local_conda_channel(
 
     tempfile = Path("temp_env.yaml")
 
-    # ensure that conda-forge is the only channel
-    env["channels"] = ["conda-forge"]
+    # ensure that conda-forge and pkgs/main are the only channels
+    env["channels"] = ["conda-forge", "pkgs/main"]
 
     with open(tempfile, "w") as f:
         yaml = YAML(pure=True)
@@ -105,8 +105,8 @@ def create_ib_manifest(file: str | Path,
     # read the local env yaml
     env = load_yaml(file)
 
-    # ensure that conda-forge is the only channel
-    env["channels"] = ["conda-forge"]
+    # ensure that conda-forge and pkgs/main are the only channels
+    env["channels"] = ["conda-forge", "pkgs/main"]
 
     with open(tempfile, "w") as f:
         yaml = YAML(pure=True)
