@@ -7,7 +7,7 @@ RUN apt-get update \
 	&& apt-get install curl bzip2 git -y \
 	&& curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 
-WORKDIR /manifestinator/
+WORKDIR /repos/
 
 # Clone relevant git repos
 RUN git clone $MANIFEST_UTIL_REPO \
@@ -19,11 +19,11 @@ RUN git clone $MANIFEST_UTIL_REPO \
 
 # Install micromamba, create env, install correct conda-vendor
 RUN eval "$(micromamba shell hook --shell=dash)" \
-	&& cd /manifestinator/ib_manifest_util \
+	&& cd /repos/ib_manifest_util \
 	&& micromamba create -f environment.yml -y\
 	&& micromamba activate ib_manifest_env \
 	&& python3 -m pip install -e . \
-	&& cd /manifestinator/conda-vendor \
+	&& cd /repos/conda-vendor \
 	&& python3 -m pip install -e . \
 	&& touch ~/.bashrc \
 	&& micromamba shell init --shell=bash --prefix=~/micromamba \
