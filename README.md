@@ -94,7 +94,7 @@ pytest tests -vvv -m "not web"
 
 ## Container instructions
 
-**To build:** `docker build -t manifest-tool --build-arg MANIFEST_UTIL_REPO=<link-to-ib_manifest_util> --build-arg CONDA_VENDOR_REPO=<link-to-conda-vendor> .`
+**To build:** `docker build -t manifest-tool --build-arg MANIFEST_UTIL_REPO=<ib_manifest_util-clone-url> --build-arg CONDA_VENDOR_REPO=<conda-vendor-clone-url> .`
 
 **To run:** `docker run -it --rm -v </path/to/local/ib/repo>:/work ubuntu-base`
 
