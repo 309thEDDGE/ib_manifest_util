@@ -92,6 +92,12 @@ Some tests require external internet access to run. These tests are marked with
 pytest tests -vvv -m "not web"
 ```
 
+## Container instructions
+
+**To build:** `docker build -t manifest-tool --build-arg MANIFEST_UTIL_REPO=<ib_manifest_util-clone-url> --build-arg CONDA_VENDOR_REPO=<conda-vendor-clone-url> .`
+
+**To run:** `docker run -it --rm -v </path/to/local/ib/repo>:/work manifest-tool`
+
 ### Making a release
 
 IB Manifest uses a dev/main git workflow. All development work happens on `dev`,
