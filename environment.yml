@@ -4,15 +4,15 @@ channels:
   - default
 dependencies:
   - click
-  - conda-vendor>=1.0.3
   - jinja2
   - pip
   - pre-commit
   - pytest
   - pytest-cov
-  - python
+  - python=3.11
   - requests
   - ruamel.yaml
   - urllib3
   - pip:
-    - -e .
+    - git+https://github.com/309thEDDGE/conda-vendor.git
+    - .
